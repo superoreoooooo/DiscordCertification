@@ -1,0 +1,11 @@
+name: DiscordCertification
+version: '${project.version}'
+main: org.oreodev.discordcertification.Main
+api-version: 1.16
+author: 0reo_0
+commands:
+  jda:
+    description: JDA
+  인증:
+    aliases: [certification, dlswmd, ct]
+    description: certification
