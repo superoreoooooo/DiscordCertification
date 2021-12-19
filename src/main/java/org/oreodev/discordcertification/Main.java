@@ -19,36 +19,45 @@ import static org.oreodev.discordcertification.command.CertificationCommand.orig
 
 
 import javax.security.auth.login.LoginException;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Main extends JavaPlugin {
 
     public ymlManager manager;
-    public static String token;
+
+    private static Main instance;
+
     public static boolean chat;
     public static boolean alarm;
     public static boolean status;
+    public static String token;
+    public static String botStatus;
+    public static List<String> discordMsg = new ArrayList<>();
+
     private final ConsoleCommandSender console = Bukkit.getConsoleSender();
     private final PluginManager pluginManager = Bukkit.getPluginManager();
 
     @Override
     public void onEnable() {
+        instance = this;
         this.manager = new ymlManager(this);
         FileConfiguration config = this.getConfig();
-
         this.saveDefaultConfig();
 
-        console.sendMessage(ChatColor.GREEN + "JDA BOT ON!");
-
-        getCommand("jda").setExecutor(new MinecraftCommand());
+        getCommand("jda").setExecutor(new MinecraftCommand(this));
         getCommand("인증").setExecutor(new CertificationCommand(this));
 
         chat = config.getBoolean("chat");
         alarm = config.getBoolean("alarm");
         status = false;
+        botStatus = config.getString("messages.status");
+        discordMsg = config.getStringList("messages.discord");
+
         int cnt = this.manager.getConfig().getInt("count");
 
         for (int r = 1; r < cnt + 1; r++) {
-            String p = this.manager.getConfig().getString("players." + r);
+            String p = config.getString("players." + r);
             if (p == null) {
                 console.sendMessage(ChatColor.RED + "error occurred!");
                 return;
@@ -73,7 +82,7 @@ public final class Main extends JavaPlugin {
             token = config.getString("token");
             Bukkit.getConsoleSender().sendMessage("loaded token : " + ChatColor.AQUA + token);
             status = true;
-            pluginManager.registerEvents(new MinecraftListener(), this);
+            pluginManager.registerEvents(new MinecraftListener(this), this);
             try {
                 botConnector.startBot(token);
             } catch (LoginException e) {
@@ -82,13 +91,14 @@ public final class Main extends JavaPlugin {
         }
         else {
             status = false;
-            Bukkit.getConsoleSender().sendMessage("please put your token to config.yml");
+            Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("messages.no-token-exists")));
         }
+
+        console.sendMessage(ChatColor.GREEN + "JDA BOT ON!");
     }
 
     @Override
     public void onDisable() {
-        Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "JDA BOT OFF!");
         int cnt = this.manager.getConfig().getInt("count");
 
         console.sendMessage("==========================================================");
@@ -108,9 +118,15 @@ public final class Main extends JavaPlugin {
         this.manager.saveConfig();
 
         if (botConnector.jda == null) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "JDA BOT OFF!");
             return;
         }
 
         botConnector.jda.shutdownNow();
+        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "JDA BOT OFF!");
+    }
+
+    public static Main getInstance() {
+        return instance;
     }
 }

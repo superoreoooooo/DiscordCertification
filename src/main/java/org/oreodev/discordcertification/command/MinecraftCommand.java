@@ -5,22 +5,26 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.oreodev.discordcertification.Main;
 import org.oreodev.discordcertification.bot.botConnector;
 
 import javax.security.auth.login.LoginException;
 
-import static org.oreodev.discordcertification.Main.status;
 import static org.oreodev.discordcertification.Main.token;
 
 public class MinecraftCommand implements CommandExecutor {
 
+    private final Main main;
+
+    public MinecraftCommand(Main plugin) {
+        this.main = plugin;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-        if (!status) {
-            sender.sendMessage("config.yml에 token 입력한 다음 재로딩 ㄱㄱ");
-        }
+        FileConfiguration config = main.getConfig();
 
         if (!(sender instanceof Player)) {
             sender.sendMessage("Player Only No Console");
@@ -28,26 +32,24 @@ public class MinecraftCommand implements CommandExecutor {
         }
 
         if (!sender.hasPermission("administrator")) {
-            String message = ChatColor.RED + "권한이 없습니다.";
-            sender.sendMessage(message);
+            msg(sender, config.getString("messages.no-permission"));
             return false;
         }
 
         if (token == null) {
-            String message = ChatColor.RED + "토큰을 입력해주세요.";
-            sender.sendMessage(message);
+            msg(sender, config.getString("messages.no-token-exists"));
             return false;
         }
 
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.GREEN + "/jda " + ChatColor.GOLD + "::shutdown(stop) ::status(now) ::start ::reload(restart)");
+            msg(sender, config.getString("messages.wrong-input2"));
             return true;
         }
 
         if (args.length == 1) {
 
             if (args[0].equalsIgnoreCase("shutdown") || args[0].equalsIgnoreCase("stop")) {
-                sender.sendMessage(ChatColor.GREEN + "jda is now turned off");
+                msg(sender, config.getString("messages.jda-stop"));
                 botConnector.jda.shutdownNow();
                 return true;
             }
@@ -64,18 +66,18 @@ public class MinecraftCommand implements CommandExecutor {
                     } catch (LoginException e) {
                         e.printStackTrace();
                     }
-                    sender.sendMessage(ChatColor.GREEN + "jda is now started");
+                    msg(sender, config.getString("messages.jda-start"));
                     return true;
                 }
                 else {
-                    sender.sendMessage(ChatColor.GREEN + "jda is working now");
+                    msg(sender, config.getString("messages.jda-working"));
                     return false;
                 }
             }
 
             if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("restart")) {
                 if (botConnector.jda.getStatus().equals(JDA.Status.SHUTDOWN)) {
-                    sender.sendMessage(ChatColor.GREEN + "jda is stopped now");
+                    msg(sender, config.getString("messages.jda-stop"));
                     return false;
                 }
                 botConnector.jda.shutdownNow();
@@ -84,15 +86,21 @@ public class MinecraftCommand implements CommandExecutor {
                 } catch (LoginException e) {
                     e.printStackTrace();
                 }
-                sender.sendMessage(ChatColor.GREEN + "jda is now restarted");
+                msg(sender, config.getString("messages.jda-restart"));
                 return true;
             }
         }
 
         else {
-            sender.sendMessage(ChatColor.GREEN + "/jda" + ChatColor.GOLD + "::shutdown(stop) ::status(now) ::start ::reload(restart)");
+            msg(sender, config.getString("messages.wrong-input2"));
         }
 
         return false;
+    }
+
+    private void msg(CommandSender sender, String msg) {
+        FileConfiguration config = main.getConfig();
+        String prefix = config.getString("messages.prefix");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + msg));
     }
 }

@@ -6,6 +6,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.oreodev.discordcertification.Main;
 
@@ -28,38 +29,49 @@ public class CertificationCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        FileConfiguration config = main.getConfig();
+
         if (!status) {
-            sender.sendMessage("config.yml에 token 입력한 다음 재로딩 ㄱㄱ.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', config.getString("messages.prefix") + config.getString("messages.no-token-exists")));
         }
+
         if (!(sender instanceof Player)) return false;
+
         Player player = (Player) sender;
+
         if (!codeMap.containsKey(player)) {
-            player.sendMessage("인증 요청을 먼저 보내주세요.");
+            msg(player, config.getString("messages.no-certification-requests"));
             return false;
         }
+
         int code = codeMap.get(player);
-        Bukkit.getConsoleSender().sendMessage(player.getName() + "님의 인증 코드 : " + codeMap.get(player));
+        Bukkit.getConsoleSender().sendMessage(player.getName() + "'s code : " + codeMap.get(player));
         if (args.length == 1) {
             if (args[0].equals(String.valueOf(code))) {
-                player.sendMessage("인증되었습니다.");
-                codeMap.remove(player);
-                player.teleport(LocationMap.get(player));
-                playerList.add(player);
+                msg(player, config.getString("messages.certificated"));
 
-                int cnt = main.manager.getConfig().getInt("count");
-                main.manager.getConfig().set("count", cnt++);
-                Bukkit.getConsoleSender().sendMessage(player.getName() + "님이 인증됨 / " + "count : " + ChatColor.AQUA + cnt);
+                playerList.add(player);
+                player.teleport(LocationMap.get(player));
+
+                main.manager.getConfig().set("count", main.manager.getConfig().getInt("count") + 1);
+                Bukkit.getConsoleSender().sendMessage("Player " + player.getName() + " certificated / " + "count : " + ChatColor.AQUA + main.manager.getConfig().getInt("count") + 1);
                 main.manager.saveConfig();
             }
             else {
-                player.sendMessage("인증 코드가 일치하지 않습니다. 인증을 취소합니다.");
-                codeMap.remove(player);
+                msg(player, config.getString("messages.certification-failed"));
             }
+            codeMap.remove(player);
             return true;
         }
         else {
-            player.sendMessage("?");
+            msg(player, config.getString("messages.wrong-input"));
         }
         return false;
+    }
+
+    private void msg(Player player, String msg) {
+        FileConfiguration config = main.getConfig();
+        String prefix = config.getString("messages.prefix");
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + msg));
     }
 }

@@ -1,3 +1,26 @@
 token:
 chat: false
-alarm : false
+alarm: false
+channelname: "테스트"
+messages:
+  prefix: "&9[DISCORD] "
+  status: "인증"
+  no-token-exists: "&cPlease put your token to config.yml"
+  no-certification-requests: "&f인증 요청을 먼저 보내주세요."
+  certificated: "&a인증되었습니다."
+  certification-failed: "&c인증 코드가 일치하지 않습니다. 인증을 취소합니다."
+  wrong-input: "&c/인증 ~~~~~~"
+  no-permission: "&c권한이 없습니다."
+  wrong-input2: "&a/jda &6::shutdown(stop) ::status(now) ::start ::reload(restart)"
+  jda-stop: "&aJda is turned off"
+  jda-start: "&aJda started"
+  jda-working: "&aJda is working"
+  jda-restart: "&aJda is restarting"
+  discord-input-username: "유저의 이름을 입력해 주세요."
+  discord-user-no-exist: "존재하지 않는 유저입니다."
+  discord-request-cert: "&f인증 요청 발생 : "
+  mc-welcome: "&f환영합니다."
+  mc-event-chat: "이(가) 보낸 메세지 : "
+  mc-event-join: "&f님이 서버에 접속하셨습니다."
+  mc-event-quit: "&f님이 서버에서 퇴장하셨습니다."
+  mc-requesting-cert: "&f인증을 해주세요."
